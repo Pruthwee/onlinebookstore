@@ -5,8 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import javax.servlet.http.HttpSession;
-
 import com.bittercode.constant.ResponseCode;
 import com.bittercode.constant.db.UsersDBConstants;
 import com.bittercode.model.StoreException;
@@ -25,7 +23,7 @@ public class UserServiceImpl implements UserService {
             + UsersDBConstants.COLUMN_USERTYPE + "=?";
 
     @Override
-    public User login(UserRole role, String email, String password, HttpSession session) throws StoreException {
+    public User login(UserRole role, String email, String password) throws StoreException {
         Connection con = DBUtil.getConnection();
         PreparedStatement ps;
         User user = null;
@@ -43,27 +41,11 @@ public class UserServiceImpl implements UserService {
                 user.setPhone(rs.getLong("phone"));
                 user.setEmailId(email);
                 user.setPassword(password);
-                session.setAttribute(role.toString(), user.getEmailId());
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return user;
-    }
-
-    @Override
-    public boolean isLoggedIn(UserRole role, HttpSession session) {
-        if (role == null)
-            role = UserRole.CUSTOMER;
-        return session.getAttribute(role.toString()) != null;
-    }
-
-    @Override
-    public boolean logout(HttpSession session) {
-        session.removeAttribute(UserRole.CUSTOMER.toString());
-        session.removeAttribute(UserRole.SELLER.toString());
-        session.invalidate();
-        return true;
     }
 
     @Override
@@ -84,7 +66,6 @@ public class UserServiceImpl implements UserService {
             int k = ps.executeUpdate();
             if (k == 1) {
                 responseMessage = ResponseCode.SUCCESS.name();
-                ;
             }
         } catch (Exception e) {
             responseMessage += " : " + e.getMessage();
@@ -94,5 +75,4 @@ public class UserServiceImpl implements UserService {
         }
         return responseMessage;
     }
-
 }

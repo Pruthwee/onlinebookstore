@@ -8,16 +8,19 @@ import javax.servlet.http.HttpSession;
 import com.bittercode.model.UserRole;
 
 /*
- * Store UTil File To Store Commonly used methods
+ * Store Util File To Store Commonly used methods
  */
 public class StoreUtil {
 
     /**
-     * Check if the User is logged in with the requested role
+     * Check if the User is logged in with the requested role.
+     *
+     * This method only checks for the presence of a role attribute in the
+     * session. The actual session storage can be backed by Azure Cache for
+     * Redis when configured at the container/platform level.
      */
     public static boolean isLoggedIn(UserRole role, HttpSession session) {
-
-        return session.getAttribute(role.toString()) != null;
+        return session != null && session.getAttribute(role.toString()) != null;
     }
 
     /**
@@ -32,7 +35,11 @@ public class StoreUtil {
     }
 
     /**
-     * Add/Remove/Update Item in the cart using the session
+     * Add/Remove/Update Item in the cart using the session.
+     *
+     * The HttpSession itself can be configured to use Azure Cache for Redis as
+     * the backing store (e.g. via Spring Session or container-specific
+     * configuration). This method remains focused on logical cart updates.
      */
     public static void updateCartItems(HttpServletRequest req) {
         String selectedBookId = req.getParameter("selectedBookId");

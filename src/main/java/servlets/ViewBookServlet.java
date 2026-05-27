@@ -19,8 +19,10 @@ import com.bittercode.util.StoreUtil;
 
 public class ViewBookServlet extends HttpServlet {
 
+    private static final long serialVersionUID = 1L;
+
     // book service for database operations and logics
-    BookService bookService = new BookServiceImpl();
+    private final BookService bookService = new BookServiceImpl();
 
     public void service(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
         PrintWriter pw = res.getWriter();

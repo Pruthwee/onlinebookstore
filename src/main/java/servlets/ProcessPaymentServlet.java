@@ -21,7 +21,9 @@ import com.bittercode.util.StoreUtil;
 
 public class ProcessPaymentServlet extends HttpServlet {
 
-    BookService bookService = new BookServiceImpl();
+    private static final long serialVersionUID = 1L;
+
+    private final BookService bookService = new BookServiceImpl();
 
     @SuppressWarnings("unchecked")
     public void service(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
@@ -45,18 +47,20 @@ public class ProcessPaymentServlet extends HttpServlet {
             List<Cart> cartItems = null;
             if (session.getAttribute("cartItems") != null)
                 cartItems = (List<Cart>) session.getAttribute("cartItems");
-            for (Cart cart : cartItems) {
-                Book book = cart.getBook();
-                double bPrice = book.getPrice();
-                String bCode = book.getBarcode();
-                String bName = book.getName();
-                String bAuthor = book.getAuthor();
-                int availableQty = book.getQuantity();
-                int qtToBuy = cart.getQuantity();
-                availableQty = availableQty - qtToBuy;
-                bookService.updateBookQtyById(bCode, availableQty);
-                pw.println(this.addBookToCard(bCode, bName, bAuthor, bPrice, availableQty));
-                session.removeAttribute("qty_" + bCode);
+            if (cartItems != null) {
+                for (Cart cart : cartItems) {
+                    Book book = cart.getBook();
+                    double bPrice = book.getPrice();
+                    String bCode = book.getBarcode();
+                    String bName = book.getName();
+                    String bAuthor = book.getAuthor();
+                    int availableQty = book.getQuantity();
+                    int qtToBuy = cart.getQuantity();
+                    availableQty = availableQty - qtToBuy;
+                    bookService.updateBookQtyById(bCode, availableQty);
+                    pw.println(this.addBookToCard(bCode, bName, bAuthor, bPrice, availableQty));
+                    session.removeAttribute("qty_" + bCode);
+                }
             }
             session.removeAttribute("amountToPay");
             session.removeAttribute("cartItems");

@@ -1,19 +1,18 @@
 package com.bittercode.service;
 
-import javax.servlet.http.HttpSession;
-
 import com.bittercode.model.StoreException;
 import com.bittercode.model.User;
 import com.bittercode.model.UserRole;
 
+/**
+ * User service abstraction.
+ *
+ * Session-related concerns are handled at the web layer; this service is
+ * stateless to support cloud-native scaling.
+ */
 public interface UserService {
 
-    public User login(UserRole role, String email, String password, HttpSession session) throws StoreException;
+    User login(UserRole role, String email, String password) throws StoreException;
 
-    public String register(UserRole role, User user) throws StoreException;
-
-    public boolean isLoggedIn(UserRole role, HttpSession session);
-
-    public boolean logout(HttpSession session);
-
+    String register(UserRole role, User user) throws StoreException;
 }

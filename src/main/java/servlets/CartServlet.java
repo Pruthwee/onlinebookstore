@@ -22,7 +22,9 @@ import com.bittercode.util.StoreUtil;
 
 public class CartServlet extends HttpServlet {
 
-    BookService bookService = new BookServiceImpl();
+    private static final long serialVersionUID = 1L;
+
+    private final BookService bookService = new BookServiceImpl();
 
     public void service(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
         PrintWriter pw = res.getWriter();
@@ -121,5 +123,4 @@ public class CartServlet extends HttpServlet {
                 + "      <td><span>&#8377;</span> " + (book.getPrice() * cart.getQuantity()) + "</td>\r\n"
                 + "    </tr>\r\n";
     }
-
 }
