@@ -1,17 +1,42 @@
 package com.bittercode.service.impl;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.servlet.http.HttpSession;
-
-import com.bittercode.constant.ResponseCode;
-import com.bittercode.constant.db.UsersDBConstants;
-import com.bittercode.model.StoreException;
-import com.bittercode.model.User;
-import com.bittercode.model.UserRole;
+import com.bittercode.service.UserService;
+    public User login(UserRole role, String email, String password, String sessionId) throws StoreException {
+                user.setPassword(password);
+                // Session association is now expected to be handled via an
+                // external session store such as Azure Cache for Redis using
+                // the provided sessionId.
+    public boolean isLoggedIn(UserRole role, String sessionId) {
+        // Actual session lookup should be performed against an external
+        // distributed cache (e.g., Azure Cache for Redis) using the
+        // sessionId. This implementation simply returns false to avoid
+        // relying on in-memory HttpSession state.
+        return false;
+    public boolean logout(String sessionId) {
+        // In a cloud deployment, this should remove any session data stored in
+        // Azure Cache for Redis for the given sessionId.
+        return true;
+        return false;
+    public boolean logout(String sessionId) {
+        // In a cloud deployment, this should remove any session data stored in
+        // Azure Cache for Redis for the given sessionId.
+        return true;
+        return false;
+    public boolean logout(String sessionId) {
+        // In a cloud deployment, this should remove any session data stored in
+        // Azure Cache for Redis for the given sessionId.
+        return true;
+        return false;
+    public boolean logout(String sessionId) {
+        // In a cloud deployment, this should remove any session data stored in
+        // Azure Cache for Redis for the given sessionId.
+        return true;
+        return false;
+    public boolean logout(String sessionId) {
+        // In a cloud deployment, this should remove any session data stored in
+        // Azure Cache for Redis for the given sessionId.
+        return true;
 import com.bittercode.service.UserService;
 import com.bittercode.util.DBUtil;
 

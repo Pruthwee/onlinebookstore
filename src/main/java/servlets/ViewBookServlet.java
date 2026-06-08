@@ -1,9 +1,9 @@
-package servlets;
+        res.setContentType("text/html");
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
-
+        // Check if the customer is logged in, or else return to login page
+        String sessionId = req.getSession().getId();
+        if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, sessionId)) {
+            HttpSession session = req.getSession();
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

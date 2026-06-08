@@ -1,9 +1,17 @@
-package servlets;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+        // Check if Customer is logged In using externalized session state
+        String sessionId = req.getSession().getId();
+        if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, sessionId)) {
+            HttpSession session = req.getSession();
+            // set cartItems and amountToPay in the session (backed by
+            // external session store in a cloud deployment)
+            session.setAttribute("cartItems", cartItems);
+            session.setAttribute("amountToPay", amountToPay);
+            session.setAttribute("cartItems", cartItems);
+            session.setAttribute("amountToPay", amountToPay);
+            session.setAttribute("cartItems", cartItems);
+            session.setAttribute("amountToPay", amountToPay);
+            session.setAttribute("cartItems", cartItems);
+            session.setAttribute("amountToPay", amountToPay);
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;

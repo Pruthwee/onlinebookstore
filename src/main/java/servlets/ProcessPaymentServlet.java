@@ -1,13 +1,7 @@
-package servlets;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
-
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
+        res.setContentType(BookStoreConstants.CONTENT_TYPE_TEXT_HTML);
+        String sessionId = req.getSession().getId();
+        if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, sessionId)) {
+            HttpSession session = req.getSession();
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 

@@ -1,21 +1,30 @@
-package com.bittercode.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+    // In a cloud-native Azure deployment, configuration should be externalized.
+    // This class now reads its values from environment variables that can be
+    // populated directly or via Azure App Configuration / Key Vault references.
 
-class DatabaseConfig {
+    public static final String DRIVER_NAME = getEnvOrDefault("DB_DRIVER", "org.postgresql.Driver");
 
-    static Properties prop = new Properties();
-    static {
+    public static final String DB_HOST = getEnvOrDefault("DB_HOST", "localhost");
 
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        InputStream input = classLoader.getResourceAsStream("application.properties");
+    // Port is no longer hard coded; it is fully controlled via environment
+    // variable so that Azure can assign it dynamically when required.
+    public static final String DB_PORT = getEnvOrDefault("DB_PORT", "5432");
 
-        try {
-            prop.load(input);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static final String DB_NAME = getEnvOrDefault("DB_NAME", "bookstore");
+
+    // Username and password are expected to come from environment variables that
+    // in turn are backed by Azure Key Vault references.
+    public static final String DB_USER_NAME = getEnvOrDefault("DB_USERNAME", "");
+
+    public static final String DB_PASSWORD = getEnvOrDefault("DB_PASSWORD", "");
+
+    public static final String CONNECTION_STRING = DB_HOST + ":" + DB_PORT + "/" + DB_NAME;
+
+    private static String getEnvOrDefault(String key, String defaultValue) {
+        String value = System.getenv(key);
+        return (value == null || value.isEmpty()) ? defaultValue : value;
+    }
         }
     }
 
