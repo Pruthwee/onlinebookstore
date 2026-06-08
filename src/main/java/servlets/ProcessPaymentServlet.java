@@ -9,7 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import com.bittercode.constant.BookStoreConstants;
 import com.bittercode.model.Book;
@@ -17,6 +16,7 @@ import com.bittercode.model.Cart;
 import com.bittercode.model.UserRole;
 import com.bittercode.service.BookService;
 import com.bittercode.service.impl.BookServiceImpl;
+import com.bittercode.util.SessionStateManager;
 import com.bittercode.util.StoreUtil;
 
 public class ProcessPaymentServlet extends HttpServlet {
@@ -27,41 +27,38 @@ public class ProcessPaymentServlet extends HttpServlet {
     public void service(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
         PrintWriter pw = res.getWriter();
         res.setContentType(BookStoreConstants.CONTENT_TYPE_TEXT_HTML);
-        if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, req.getSession())) {
+        if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, req)) {
             RequestDispatcher rd = req.getRequestDispatcher("CustomerLogin.html");
             rd.include(req, res);
             pw.println("<table class=\"tab\"><tr><td>Please Login First to Continue!!</td></tr></table>");
             return;
         }
         try {
-
             RequestDispatcher rd = req.getRequestDispatcher("CustomerHome.html");
             rd.include(req, res);
             StoreUtil.setActiveTab(pw, "cart");
             pw.println("<div id='topmid' style='background-color:grey'>Your Orders</div>");
             pw.println("<div class=\"container\">\r\n"
                     + "        <div class=\"card-columns\">");
-            HttpSession session = req.getSession();
             List<Cart> cartItems = null;
-            if (session.getAttribute("cartItems") != null)
-                cartItems = (List<Cart>) session.getAttribute("cartItems");
-            for (Cart cart : cartItems) {
-                Book book = cart.getBook();
-                double bPrice = book.getPrice();
-                String bCode = book.getBarcode();
-                String bName = book.getName();
-                String bAuthor = book.getAuthor();
-                int availableQty = book.getQuantity();
-                int qtToBuy = cart.getQuantity();
-                availableQty = availableQty - qtToBuy;
-                bookService.updateBookQtyById(bCode, availableQty);
-                pw.println(this.addBookToCard(bCode, bName, bAuthor, bPrice, availableQty));
-                session.removeAttribute("qty_" + bCode);
+            if (SessionStateManager.getAttribute(req, "cartItems", List.class).isPresent()) {
+                cartItems = (List<Cart>) SessionStateManager.getAttribute(req, "cartItems", List.class).get();
             }
-            session.removeAttribute("amountToPay");
-            session.removeAttribute("cartItems");
-            session.removeAttribute("items");
-            session.removeAttribute("selectedBookId");
+            if (cartItems != null) {
+                for (Cart cart : cartItems) {
+                    Book book = cart.getBook();
+                    double bPrice = book.getPrice();
+                    String bCode = book.getBarcode();
+                    String bName = book.getName();
+                    String bAuthor = book.getAuthor();
+                    int availableQty = book.getQuantity();
+                    int qtToBuy = cart.getQuantity();
+                    availableQty = availableQty - qtToBuy;
+                    bookService.updateBookQtyById(bCode, availableQty);
+                    pw.println(this.addBookToCard(bCode, bName, bAuthor, bPrice, availableQty));
+                }
+            }
+            StoreUtil.clearCart(req);
             pw.println("</div>\r\n"
                     + "    </div>");
         } catch (Exception e) {

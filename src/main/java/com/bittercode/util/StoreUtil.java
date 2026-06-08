@@ -3,8 +3,8 @@ package com.bittercode.util;
 import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
+import com.bittercode.model.SessionCart;
 import com.bittercode.model.UserRole;
 
 /*
@@ -12,12 +12,13 @@ import com.bittercode.model.UserRole;
  */
 public class StoreUtil {
 
+    private static final String SESSION_CART_KEY = "sessionCart";
+
     /**
      * Check if the User is logged in with the requested role
      */
-    public static boolean isLoggedIn(UserRole role, HttpSession session) {
-
-        return session.getAttribute(role.toString()) != null;
+    public static boolean isLoggedIn(UserRole role, HttpServletRequest request) {
+        return SessionStateManager.isLoggedIn(request, role.toString());
     }
 
     /**
@@ -32,51 +33,31 @@ public class StoreUtil {
     }
 
     /**
-     * Add/Remove/Update Item in the cart using the session
+     * Add/Remove/Update Item in the cart using externalized session state.
      */
     public static void updateCartItems(HttpServletRequest req) {
         String selectedBookId = req.getParameter("selectedBookId");
-        HttpSession session = req.getSession();
-        if (selectedBookId != null) { // add item to the cart
-
-            // Items will contain comma separated bookIds that needs to be added in the cart
-            String items = (String) session.getAttribute("items");
-            if (req.getParameter("addToCart") != null) { // add to cart
-                if (items == null || items.length() == 0)
-                    items = selectedBookId;
-                else if (!items.contains(selectedBookId))
-                    items = items + "," + selectedBookId; // if items already contains bookId, don't add it
-
-                // set the items in the session to be used later
-                session.setAttribute("items", items);
-
-                /*
-                 * Quantity of each item in the cart will be stored in the session as:
-                 * Prefixed with qty_ following its bookId
-                 * For example 2 no. of book with id 'myBook' in the cart will be
-                 * added to the session as qty_myBook=2
-                 */
-                int itemQty = 0;
-                if (session.getAttribute("qty_" + selectedBookId) != null)
-                    itemQty = (int) session.getAttribute("qty_" + selectedBookId);
-                itemQty += 1;
-                session.setAttribute("qty_" + selectedBookId, itemQty);
-            } else { // remove from the cart
-                int itemQty = 0;
-                if (session.getAttribute("qty_" + selectedBookId) != null)
-                    itemQty = (int) session.getAttribute("qty_" + selectedBookId);
-                if (itemQty > 1) {
-                    itemQty--;
-                    session.setAttribute("qty_" + selectedBookId, itemQty);
-                } else {
-                    session.removeAttribute("qty_" + selectedBookId);
-                    items = items.replace(selectedBookId + ",", "");
-                    items = items.replace("," + selectedBookId, "");
-                    items = items.replace(selectedBookId, "");
-                    session.setAttribute("items", items);
-                }
-            }
+        if (selectedBookId == null) {
+            return;
         }
 
+        SessionCart cart = getSessionCart(req);
+        if (req.getParameter("addToCart") != null) {
+            cart.addItem(selectedBookId);
+        } else {
+            cart.removeItem(selectedBookId);
+        }
+        SessionStateManager.setAttribute(req, SESSION_CART_KEY, cart);
+    }
+
+    public static SessionCart getSessionCart(HttpServletRequest req) {
+        return SessionStateManager.getAttribute(req, SESSION_CART_KEY, SessionCart.class).orElseGet(SessionCart::new);
+    }
+
+    public static void clearCart(HttpServletRequest req) {
+        SessionStateManager.removeAttribute(req, SESSION_CART_KEY);
+        SessionStateManager.removeAttribute(req, "cartItems");
+        SessionStateManager.removeAttribute(req, "amountToPay");
+        SessionStateManager.removeAttribute(req, "selectedBookId");
     }
 }

@@ -10,14 +10,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import com.bittercode.constant.BookStoreConstants;
 import com.bittercode.model.Book;
 import com.bittercode.model.Cart;
+import com.bittercode.model.SessionCart;
 import com.bittercode.model.UserRole;
 import com.bittercode.service.BookService;
 import com.bittercode.service.impl.BookServiceImpl;
+import com.bittercode.util.SessionStateManager;
 import com.bittercode.util.StoreUtil;
 
 public class CartServlet extends HttpServlet {
@@ -28,30 +29,21 @@ public class CartServlet extends HttpServlet {
         PrintWriter pw = res.getWriter();
         res.setContentType(BookStoreConstants.CONTENT_TYPE_TEXT_HTML);
 
-        // Check if Customer is logged In
-        if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, req.getSession())) {
+        if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, req)) {
             RequestDispatcher rd = req.getRequestDispatcher("CustomerLogin.html");
             rd.include(req, res);
             pw.println("<table class=\"tab\"><tr><td>Please Login First to Continue!!</td></tr></table>");
             return;
         }
         try {
-            // Add/Remove Item from the cart if requested
-            // store the comma separated bookIds of cart in the session
             StoreUtil.updateCartItems(req);
-
-            HttpSession session = req.getSession();
-            String bookIds = "";
-            if (session.getAttribute("items") != null)
-                bookIds = (String) session.getAttribute("items");// read comma separated bookIds from session
+            SessionCart sessionCart = StoreUtil.getSessionCart(req);
+            String bookIds = sessionCart.toBookIdsCsv();
 
             RequestDispatcher rd = req.getRequestDispatcher("CustomerHome.html");
             rd.include(req, res);
-
-            // Set the active tab as cart
             StoreUtil.setActiveTab(pw, "cart");
 
-            // Read the books from the database with the respective bookIds
             List<Book> books = bookService.getBooksByCommaSeperatedBookIds(bookIds);
             List<Cart> cartItems = new ArrayList<Cart>();
             pw.println("<div id='topmid' style='background-color:grey'>Shopping Cart</div>");
@@ -74,16 +66,15 @@ public class CartServlet extends HttpServlet {
                         + "    </tr>\r\n");
             }
             for (Book book : books) {
-                int qty = (int) session.getAttribute("qty_" + book.getBarcode());
+                int qty = sessionCart.getQuantity(book.getBarcode());
                 Cart cart = new Cart(book, qty);
                 cartItems.add(cart);
                 amountToPay += (qty * book.getPrice());
                 pw.println(getRowData(cart));
             }
 
-            // set cartItems and amountToPay in the session
-            session.setAttribute("cartItems", cartItems);
-            session.setAttribute("amountToPay", amountToPay);
+            SessionStateManager.setAttribute(req, "cartItems", (java.io.Serializable) new ArrayList<Cart>(cartItems));
+            SessionStateManager.setAttribute(req, "amountToPay", amountToPay);
 
             if (amountToPay > 0) {
                 pw.println("    <tr style='background-color:green'>\r\n"
@@ -121,5 +112,4 @@ public class CartServlet extends HttpServlet {
                 + "      <td><span>&#8377;</span> " + (book.getPrice() * cart.getQuantity()) + "</td>\r\n"
                 + "    </tr>\r\n";
     }
-
 }
