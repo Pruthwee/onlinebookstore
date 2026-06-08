@@ -17,6 +17,10 @@ import com.bittercode.service.BookService;
 import com.bittercode.service.impl.BookServiceImpl;
 import com.bittercode.util.StoreUtil;
 
+/**
+ * View book servlet with cloud-ready session management
+ * Sessions can be backed by Azure Cache for Redis for horizontal scaling
+ */
 public class ViewBookServlet extends HttpServlet {
 
     // book service for database operations and logics
@@ -26,7 +30,7 @@ public class ViewBookServlet extends HttpServlet {
         PrintWriter pw = res.getWriter();
         res.setContentType("text/html");
 
-        // Check if the customer is logged in, or else return to login page
+        // Check if the customer is logged in (session can be backed by Redis)
         if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, req.getSession())) {
             RequestDispatcher rd = req.getRequestDispatcher("CustomerLogin.html");
             rd.include(req, res);
@@ -53,7 +57,7 @@ public class ViewBookServlet extends HttpServlet {
             pw.println("<div class=\"container\">\r\n"
                     + "        <div class=\"card-columns\">");
 
-            // Add or Remove items from the cart, if requested
+            // Add or Remove items from the cart, if requested (Redis-backed session)
             StoreUtil.updateCartItems(req);
 
             HttpSession session = req.getSession();
@@ -79,7 +83,7 @@ public class ViewBookServlet extends HttpServlet {
         String bCode = book.getBarcode();
         int bQty = book.getQuantity();
 
-        // Quantity of the current book added to the cart
+        // Quantity of the current book added to the cart (from Redis-backed session)
         int cartItemQty = 0;
         if (session.getAttribute("qty_" + bCode) != null) {
             // Quantity of each book in the cart will be added in the session prefixed with

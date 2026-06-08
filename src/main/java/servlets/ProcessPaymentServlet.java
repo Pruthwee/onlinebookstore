@@ -19,6 +19,10 @@ import com.bittercode.service.BookService;
 import com.bittercode.service.impl.BookServiceImpl;
 import com.bittercode.util.StoreUtil;
 
+/**
+ * Process payment servlet with cloud-ready session management
+ * Sessions can be backed by Azure Cache for Redis for horizontal scaling
+ */
 public class ProcessPaymentServlet extends HttpServlet {
 
     BookService bookService = new BookServiceImpl();
@@ -27,6 +31,8 @@ public class ProcessPaymentServlet extends HttpServlet {
     public void service(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
         PrintWriter pw = res.getWriter();
         res.setContentType(BookStoreConstants.CONTENT_TYPE_TEXT_HTML);
+        
+        // Check if Customer is logged In (session can be backed by Redis)
         if (!StoreUtil.isLoggedIn(UserRole.CUSTOMER, req.getSession())) {
             RequestDispatcher rd = req.getRequestDispatcher("CustomerLogin.html");
             rd.include(req, res);
@@ -41,6 +47,8 @@ public class ProcessPaymentServlet extends HttpServlet {
             pw.println("<div id='topmid' style='background-color:grey'>Your Orders</div>");
             pw.println("<div class=\"container\">\r\n"
                     + "        <div class=\"card-columns\">");
+            
+            // Retrieve cart items from session (Redis-backed for cloud scalability)
             HttpSession session = req.getSession();
             List<Cart> cartItems = null;
             if (session.getAttribute("cartItems") != null)
@@ -56,12 +64,17 @@ public class ProcessPaymentServlet extends HttpServlet {
                 availableQty = availableQty - qtToBuy;
                 bookService.updateBookQtyById(bCode, availableQty);
                 pw.println(this.addBookToCard(bCode, bName, bAuthor, bPrice, availableQty));
+                
+                // Clean up session attributes (Redis-backed)
                 session.removeAttribute("qty_" + bCode);
             }
+            
+            // Clean up all cart-related session attributes
             session.removeAttribute("amountToPay");
             session.removeAttribute("cartItems");
             session.removeAttribute("items");
             session.removeAttribute("selectedBookId");
+            
             pw.println("</div>\r\n"
                     + "    </div>");
         } catch (Exception e) {

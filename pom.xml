@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -5,34 +6,19 @@
 	<groupId>onlinebookstore</groupId>
 	<artifactId>onlinebookstore</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<!-- Changed from WAR to JAR for cloud-native deployment -->
+	<packaging>jar</packaging>
+	
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
 	<build>
 		<sourceDirectory>src/main/java</sourceDirectory>
 		<finalName>onlinebookstore</finalName>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.3</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>com.github.jsimone</groupId>
-									<artifactId>webapp-runner</artifactId>
-									<version>8.0.30.2</version>
-									<destFileName>webapp-runner.jar</destFileName>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
@@ -41,35 +27,100 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+			<!-- Removed maven-war-plugin as we're now using JAR packaging -->
 			<plugin>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>3.2.1</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.3.0</version>
 				<configuration>
-					<warSourceDirectory>WebContent</warSourceDirectory>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.bittercode.Main</mainClass>
+						</manifest>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
+	
 	<dependencies>
-
+		<!-- PostgreSQL Driver -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>42.3.7</version>
 		</dependency>
 
-
+		<!-- MySQL Driver -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.28</version>
 		</dependency>
 
-
+		<!-- Servlet API -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
+			<scope>provided</scope>
 		</dependency>
+		
+		<!-- HikariCP for connection pooling (cloud-ready) -->
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>4.0.3</version>
+		</dependency>
+		
+		<!-- SLF4J API for logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+		
+		<!-- Logback for structured logging (cloud-ready) -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.11</version>
+		</dependency>
+		
+		<!-- Optional: Jedis for Redis session management (Azure Cache for Redis) -->
+		<!-- Uncomment when ready to use Redis -->
+		<!--
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+		-->
+		
+		<!-- Optional: Spring Session for Redis-backed sessions -->
+		<!-- Uncomment when migrating to Spring Boot -->
+		<!--
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-data-redis</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+		-->
+		
+		<!-- Optional: Azure SDK for Key Vault (for secrets management) -->
+		<!-- Uncomment when ready to use Azure Key Vault -->
+		<!--
+		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-security-keyvault-secrets</artifactId>
+			<version>4.5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-identity</artifactId>
+			<version>1.8.0</version>
+		</dependency>
+		-->
 	</dependencies>
 </project>

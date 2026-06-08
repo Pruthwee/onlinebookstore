@@ -7,40 +7,48 @@ import javax.servlet.http.HttpSession;
 
 import com.bittercode.model.UserRole;
 
-/*
- * Store UTil File To Store Commonly used methods
+/**
+ * Store Util File To Store Commonly used methods
+ * Cloud-ready: Session management compatible with Azure Cache for Redis
  */
 public class StoreUtil {
 
     /**
      * Check if the User is logged in with the requested role
+     * Session can be backed by Azure Cache for Redis for stateless architecture
      */
     public static boolean isLoggedIn(UserRole role, HttpSession session) {
-
-        return session.getAttribute(role.toString()) != null;
+        // Session attribute check (can be backed by Redis)
+        boolean loggedIn = session.getAttribute(role.toString()) != null;
+        
+        // Alternative: Use RedisSessionManager for explicit Redis check
+        // boolean loggedIn = RedisSessionManager.hasAttribute(session.getId(), role.toString());
+        
+        return loggedIn;
     }
 
     /**
      * Modify the active tab in the page menu bar
      */
     public static void setActiveTab(PrintWriter pw, String activeTab) {
-
         pw.println("<script>document.getElementById(activeTab).classList.remove(\"active\");activeTab=" + activeTab
                 + "</script>");
         pw.println("<script>document.getElementById('" + activeTab + "').classList.add(\"active\");</script>");
-
     }
 
     /**
      * Add/Remove/Update Item in the cart using the session
+     * Cloud-ready: Cart state can be externalized to Azure Cache for Redis
      */
     public static void updateCartItems(HttpServletRequest req) {
         String selectedBookId = req.getParameter("selectedBookId");
         HttpSession session = req.getSession();
+        
         if (selectedBookId != null) { // add item to the cart
 
             // Items will contain comma separated bookIds that needs to be added in the cart
             String items = (String) session.getAttribute("items");
+            
             if (req.getParameter("addToCart") != null) { // add to cart
                 if (items == null || items.length() == 0)
                     items = selectedBookId;
@@ -49,6 +57,9 @@ public class StoreUtil {
 
                 // set the items in the session to be used later
                 session.setAttribute("items", items);
+                
+                // Alternative: Use RedisSessionManager for explicit Redis storage
+                // RedisSessionManager.setAttribute(session.getId(), "items", items);
 
                 /*
                  * Quantity of each item in the cart will be stored in the session as:
@@ -61,6 +72,10 @@ public class StoreUtil {
                     itemQty = (int) session.getAttribute("qty_" + selectedBookId);
                 itemQty += 1;
                 session.setAttribute("qty_" + selectedBookId, itemQty);
+                
+                // Alternative: Use RedisSessionManager
+                // RedisSessionManager.setAttribute(session.getId(), "qty_" + selectedBookId, itemQty);
+                
             } else { // remove from the cart
                 int itemQty = 0;
                 if (session.getAttribute("qty_" + selectedBookId) != null)
@@ -68,15 +83,18 @@ public class StoreUtil {
                 if (itemQty > 1) {
                     itemQty--;
                     session.setAttribute("qty_" + selectedBookId, itemQty);
+                    // Alternative: RedisSessionManager.setAttribute(session.getId(), "qty_" + selectedBookId, itemQty);
                 } else {
                     session.removeAttribute("qty_" + selectedBookId);
+                    // Alternative: RedisSessionManager.removeAttribute(session.getId(), "qty_" + selectedBookId);
+                    
                     items = items.replace(selectedBookId + ",", "");
                     items = items.replace("," + selectedBookId, "");
                     items = items.replace(selectedBookId, "");
                     session.setAttribute("items", items);
+                    // Alternative: RedisSessionManager.setAttribute(session.getId(), "items", items);
                 }
             }
         }
-
     }
 }
